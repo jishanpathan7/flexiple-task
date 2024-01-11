@@ -118,14 +118,9 @@ const WeatherApp = () => {
         />
       ) : (
         <>
-          <p
-            style={{
-              marginTop: "20px",
-              fontSize: "20px",
-            }}
-          >
-            Please Enter City Name
-          </p>
+          <div className="blankData">
+            Please Enter City Name See Weather Forcast
+          </div>
         </>
       )}
     </div>
