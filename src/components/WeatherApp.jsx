@@ -1,17 +1,64 @@
+//* Packages Imports */
 import React, { useEffect, useRef, useState } from "react";
-import searchIcon from "../assets/search.svg";
+
+//* Components Imports */
 import WeatherData from "./WeatherData";
+import WeatherSearchForm from "./WeatherSearch";
+
+//* Assets Imports */
 import linkIcon from "../assets/external-link.svg";
 
 const WeatherApp = () => {
   const inputValue = useRef();
   const [cityName, setCityName] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
   const [myData, setMyData] = useState([]);
   const [cityDetails, setCityDetails] = useState([]);
   const [dataWeather, setDataWeather] = useState([]);
   const [windData, setWindData] = useState([]);
-  const APP_KEY = "ac7f064efbe7fcb0b58561ab46ec4e57";
+  const API_KEY = process.env.REACT_APP_API_KEY;
+
+ 
+  // API Search Handler
+  const handleSearch = async () => {
+    const newCityName = inputValue.current.value;
+    if (newCityName.trim() !== "") {
+      setCityName(newCityName);
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://api.openweathermap.org/data/2.5/forecast?q=${newCityName}&APPID=${API_KEY}&units=metric&lang=${"en"}`
+        );
+        const data = await response.json();
+        if (response.ok) {
+          setCityDetails(data.city);
+          setMyData(data.list[0].main);
+          setDataWeather(data.list[0].weather[0]);
+          setWindData(data.list[0].wind);
+          setError(false);
+
+          localStorage.setItem("lastSearchedCity", newCityName);
+          localStorage.setItem(
+            "weatherData",
+            JSON.stringify({
+              cityDetails: data.city,
+              myData: data.list[0].main,
+              dataWeather: data.list[0].weather[0],
+              windData: data.list[0].wind,
+            })
+          );
+        } else {
+          setError(true);
+        }
+      } catch (error) {
+        setError(true);
+        console.error("Something went wrong", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
     // Load last searched city and weather data from local storage
@@ -27,62 +74,10 @@ const WeatherApp = () => {
     }
   }, []);
 
-  const onkeydownHandler = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      setCityName(inputValue.current.value);
-    }
-  };
-
-  const onSubmitHandler = (e) => {
-    e.preventDefault();
-    const newCityName = inputValue.current.value;
-    if (newCityName.trim() !== "") {
-      setCityName(newCityName);
-      fetchData(newCityName);
-    }
-  };
-
-  const fetchData = async (city) => {
-    try {
-      const response = await fetch(
-        `https://api.openweathermap.org/data/2.5/forecast?q=${city}&APPID=${APP_KEY}&units=metric&lang=${"en"}`
-      );
-      const data = await response.json();
-      if (response.ok) {
-        setCityDetails(data.city);
-        setMyData(data.list[0].main);
-        setDataWeather(data.list[0].weather[0]);
-        setWindData(data.list[0].wind);
-
-        // Save the last searched city and weather data to local storage
-        localStorage.setItem("lastSearchedCity", city);
-        localStorage.setItem(
-          "weatherData",
-          JSON.stringify({
-            cityDetails: data.city,
-            myData: data.list[0].main,
-            dataWeather: data.list[0].weather[0],
-            windData: data.list[0].wind,
-          })
-        );
-
-        if (response.status !== 200) {
-          setError(true);
-        }
-      } else {
-        setError(true);
-      }
-    } catch (error) {
-      setError(true);
-      console.error("SOmething went wrong", error);
-    }
-  };
-
   return (
     <div className="box">
       <div className="cityName">
-        {cityName && (
+        {cityName ? (
           <p>
             {cityDetails.name}, {cityDetails.country}
             <a
@@ -92,23 +87,17 @@ const WeatherApp = () => {
               <img src={linkIcon} alt="link" />
             </a>
           </p>
+        ) : (
+          <div>
+            {error && <span className="invalid">Invalid City Name</span>}
+          </div>
         )}
-        <div>{error && <span className="invalid">Invalid City Name</span>}</div>
-        <div className="search">
-          <input
-            type="text"
-            ref={inputValue}
-            onKeyDown={onkeydownHandler}
-            placeholder="City Name"
-          />
-          <img
-            style={{ cursor: "pointer" }}
-            onClick={onSubmitHandler}
-            src={searchIcon}
-            alt="searchIcon"
-          />
-        </div>
+        <WeatherSearchForm
+          inputValue={inputValue}
+          handleSearch={handleSearch}
+        />
       </div>
+
       {cityName ? (
         <WeatherData
           weatherData={myData}
@@ -117,11 +106,16 @@ const WeatherApp = () => {
           windData={windData}
         />
       ) : (
-        <>
-          <div className="blankData">
-            Please Enter City Name See Weather Forcast
-          </div>
-        </>
+        <div className="blankData">
+          <p>Welcome to the Weather App!</p>
+          <p>Please enter a city name above to see the weather forecast.</p>
+        </div>
+      )}
+
+      {loading && (
+        <div className="loaderContainer">
+          <div className="loader" />
+        </div>
       )}
     </div>
   );

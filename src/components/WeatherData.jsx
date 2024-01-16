@@ -37,10 +37,12 @@ const WeatherData = (props) => {
             Wind: <span>{props.windData.speed}&nbsp;mph</span>
           </p>
           <p>
-            Min Temp: <span>{Math.round(props.weatherData.temp_min)}&deg;C</span>
+            Min Temp:{" "}
+            <span>{Math.round(props.weatherData.temp_min)}&deg;C</span>
           </p>
           <p>
-            Max Temp: <span>{Math.round(props.weatherData.temp_max)}&deg;C</span>
+            Max Temp:{" "}
+            <span>{Math.round(props.weatherData.temp_max)}&deg;C</span>
           </p>
         </div>
       </div>
