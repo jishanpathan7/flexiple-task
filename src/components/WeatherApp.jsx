@@ -19,7 +19,6 @@ const WeatherApp = () => {
   const [windData, setWindData] = useState([]);
   const API_KEY = process.env.REACT_APP_API_KEY;
 
- 
   // API Search Handler
   const handleSearch = async () => {
     const newCityName = inputValue.current.value;
@@ -77,7 +76,7 @@ const WeatherApp = () => {
   return (
     <div className="box">
       <div className="cityName">
-        {cityName ? (
+        {cityName && !loading ? (
           <p>
             {cityDetails.name}, {cityDetails.country}
             <a
@@ -98,7 +97,7 @@ const WeatherApp = () => {
         />
       </div>
 
-      {cityName ? (
+      {cityName && !loading ? (
         <WeatherData
           weatherData={myData}
           weather={dataWeather}
